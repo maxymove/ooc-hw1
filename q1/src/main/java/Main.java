@@ -3,7 +3,8 @@ import java.io.File;
 public class Main {
 
     public static void main(String[] args) {
-        File startDir = new File("/home/max/work/ooc-2019-t3/docs");
+        String path = "/home/max/work/ooc/hw/docs";
+        File startDir = new File(path);
         MyDirectoryWalker myDirectoryWalker = new MyDirectoryWalker(startDir);
         Printer printer = new Printer(myDirectoryWalker);
         printer.printNumFile();

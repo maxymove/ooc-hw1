@@ -6,7 +6,7 @@ public class MyCLI {
 
     private CommandLineParser parser = new DefaultParser();
     private CommandLine cmd;
-    MyOptions myOptions = new MyOptions();
+    private MyOptions myOptions = new MyOptions();
 
     public MyCLI(String[] args) {
         try {

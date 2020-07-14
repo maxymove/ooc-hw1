@@ -40,15 +40,13 @@ public class SimpleCrawler {
         this.rootDir = rootDir;
     }
 
-    void bfs() {
+    public void bfs() {
         q.add(rootUrl);
         visited.add(rootUrl);
         while (!q.isEmpty()) {
             String currentUrl = q.poll();
-
             // download this html page.
             download(currentUrl);
-
             // get all html pages in this page.
             Document doc = null;
             try {
@@ -58,7 +56,6 @@ public class SimpleCrawler {
             }
             Elements links = doc.select("a[href]");
             addNeighbors(links);
-
             // get all imports ie. .css, .ico
             Elements imports = doc.select("link[href]");
             for (Element elt : imports) {
@@ -68,7 +65,6 @@ public class SimpleCrawler {
                     download(tmpUrl);
                 }
             }
-
             // get all media in this page.
             Elements media = doc.select("[src]");
             for (Element elt : media) {
@@ -79,9 +75,10 @@ public class SimpleCrawler {
                 }
             }
         }
+        System.out.printf("Total number of files: %d.\n", numFile);
     }
 
-    void addNeighbors(Elements links) {
+    private void addNeighbors(Elements links) {
         for (Element link : links) {
             String tmpUrl = link.attr("abs:href");
             String parentName = getParentName(tmpUrl);
@@ -92,37 +89,38 @@ public class SimpleCrawler {
         }
     }
 
-    String filterDomainName(String url) {
+    public String filterDomainName(String url) {
         return url.replaceAll(domainName, "");
     }
 
-    String getParentName(String url) {
+    public String getParentName(String url) {
         return url.replaceAll("#.*", "");
     }
 
-    void testDownload() {
-        download("https://ooc.cs.muzoo.io/docs/index.html");
-    }
-
-    void download(String url) {
+    private void download(String url) {
         if (!url.endsWith("/")) {
             HttpGet request = new HttpGet(url);
             HttpResponse response = null;
             try {
+                String targetPath = FilenameUtils.getPath(filterDomainName(url));
+                FileUtils.forceMkdir(new File(rootDir + targetPath));
+                String filename = rootDir + targetPath + getParentName(FilenameUtils.getName(url));
+                if (FilenameUtils.getExtension(filename) == "") {
+                    return;
+                }
                 response = client.execute(request);
                 HttpEntity entity = response.getEntity();
                 InputStream in = entity.getContent();
-                String targetPath = FilenameUtils.getPath(filterDomainName(url));
-                FileUtils.forceMkdir(new File(rootDir + targetPath));
-                String filename = getParentName(FilenameUtils.getName(url));
                 FileOutputStream fos = new FileOutputStream(filename);
                 int buffer;
                 while((buffer = in.read()) != -1) {
                     fos.write(buffer);
                 }
+                System.out.printf("crawling from %s\n", url);
+                numFile++;
+//                System.out.println("total files: " + numFile);
                 in.close();
                 fos.close();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
